@@ -6,4 +6,4 @@
 - `lib/Component/名稱/` 放可重用元件，元件的 View 與 Controller 放在同一資料夾。
 - `lib/Pages/名稱/` 放頁面，頁面與其 PageController 放在同一資料夾。
 - `lib/Utils/` 放共用邏輯，不放特定頁面的 UI。
-- 新增功能時遵守上述 MVC 分工。目前 `lib/main.dart` 保留官方計數器範例，作為第一堂的環境測試。
+- 新增功能時遵守上述 MVC 分工。Session 2 已將日記頁面拆分為 View 與 Controller；`lib/main.dart` 只設定 App 入口及主題。
