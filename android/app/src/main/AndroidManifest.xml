@@ -1,4 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <!-- Gallery uses the system Photo Picker, without broad storage access. -->
     <application
         android:label="edusnap"
         android:name="${applicationName}"

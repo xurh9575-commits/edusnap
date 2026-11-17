@@ -1,0 +1,79 @@
+{
+  "@@locale": "en",
+  "appTitle": "EduSnap",
+  "settings": "Settings",
+  "addEntry": "Add entry",
+  "editEntry": "Edit entry",
+  "entry": "Entry",
+  "edit": "Edit",
+  "journal": "Your journal",
+  "emptyJournal": "Your next story starts here.",
+  "newStory": "What happened today?",
+  "revisitStory": "Revisit your story",
+  "titleLabel": "Title (required)",
+  "noteLabel": "Note (optional)",
+  "save": "Save",
+  "cancel": "Cancel",
+  "ok": "OK",
+  "delete": "Delete",
+  "deleteTitle": "Delete entry?",
+  "titleRequired": "Title required",
+  "titleRequiredBody": "Please enter a title before saving your entry.",
+  "noNote": "No note added",
+  "noPhoto": "No photo",
+  "addPhoto": "Add photo",
+  "camera": "Take a photo",
+  "gallery": "Choose from gallery",
+  "removePhoto": "Remove photo",
+  "photoPermission": "Photo access needed",
+  "photoPermissionBody": "Allow access in app settings to use this photo source. You can continue without a photo.",
+  "openSettings": "Open app settings",
+  "photoError": "Could not open this photo. Please try again.",
+  "storageError": "Could not save or load your journal. Please retry. Your existing files have been kept.",
+  "retry": "Retry",
+  "language": "Language",
+  "english": "English",
+  "chinese": "Traditional Chinese",
+  "storage": "Journal storage",
+  "storageDescription": "Includes saved journal data and photos. Language preference is kept separately.",
+  "clear": "Clear all journals",
+  "clearTitle": "Clear journal storage?",
+  "clearBody": "All journal entries and their photos will be deleted.",
+  "clearFinalTitle": "Confirm permanent deletion",
+  "clearFinalBody": "This cannot be undone. Delete all entries and photos now?",
+  "clearDone": "Journal entries and photos cleared.",
+  "offline": "Saved on this device",
+  "photoUnavailable": "Photo unavailable",
+  "createdOn": "Created on {date}",
+  "@createdOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "storageUsed": "{size} KB used",
+  "@storageUsed": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "entryCount": "{count} entries · Swipe left to delete",
+  "@entryCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteBody": "Delete “{title}”?",
+  "@deleteBody": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  }
+}

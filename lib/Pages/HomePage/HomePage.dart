@@ -2,147 +2,188 @@ import 'package:flutter/material.dart';
 
 import '../../Component/JournalCard/JournalCard.dart';
 import '../../Models/JournalEntry.dart';
+import '../../Utils/AppSettings.dart';
+import '../../l10n/app_localizations.dart';
 import '../Add/AddPage.dart';
 import '../Detail/DetailPage.dart';
 import '../Settings/SettingsPage.dart';
 import 'HomePageController.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final HomePageController controller;
+  final AppSettings settings;
+  const HomePage({super.key, required this.controller, required this.settings});
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  late final HomePageController controller;
+  HomePageController get controller => widget.controller;
   @override
   void initState() {
     super.initState();
-    controller = HomePageController();
+    controller.load();
   }
 
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-
-  Future<void> addEntry() async {
-    final entry = await Navigator.push<JournalEntry>(
-      context,
-      MaterialPageRoute(builder: (_) => const AddPage()),
-    );
-    if (!mounted || entry == null) return;
-    controller.add(entry);
-  }
-
-  Future<bool> confirmDelete(JournalEntry entry) async =>
-      await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Delete entry?'),
-          content: Text('Delete “${entry.title}”?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Delete'),
-            ),
-          ],
-        ),
-      ) ??
-      false;
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: const Text('EduSnap'),
-      leading: IconButton(
-        tooltip: 'Settings',
-        icon: const Icon(Icons.settings_outlined),
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const SettingsPage()),
-        ),
-      ),
-      actions: [
-        IconButton(
-          tooltip: 'Add entry',
-          onPressed: addEntry,
-          icon: const Icon(Icons.add),
-        ),
-      ],
+  void addEntry() => Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => AddPage(onSave: (draft) => controller.saveEntry(draft)),
     ),
-    body: SafeArea(
-      child: ListenableBuilder(
-        listenable: controller,
-        builder: (context, _) {
-          final entries = controller.entries;
-          if (entries.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.menu_book_outlined, size: 48),
-                    const SizedBox(height: 16),
-                    const Text('Your next story starts here.'),
-                    const SizedBox(height: 16),
-                    FilledButton.icon(
-                      onPressed: addEntry,
-                      icon: const Icon(Icons.add),
-                      label: const Text('Add entry'),
-                    ),
-                  ],
-                ),
+  );
+  Future<bool> delete(JournalEntry entry) async {
+    final s = AppLocalizations.of(context)!;
+    final accepted =
+        await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(s.deleteTitle),
+            content: Text(s.deleteBody(entry.title)),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(s.cancel),
               ),
-            );
-          }
-          return ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              Text(
-                'Your journal',
-                style: Theme.of(context).textTheme.headlineMedium,
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(s.delete),
               ),
-              const SizedBox(height: 4),
-              Text('${entries.length} entries · Swipe left to delete'),
-              const SizedBox(height: 20),
-              for (final entry in entries)
-                Dismissible(
-                  key: ObjectKey(entry),
-                  direction: DismissDirection.endToStart,
-                  confirmDismiss: (_) => confirmDelete(entry),
-                  onDismissed: (_) => controller.delete(entry),
-                  background: Container(
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.only(right: 24),
-                    color: Theme.of(context).colorScheme.errorContainer,
-                    child: Icon(
-                      Icons.delete_outline,
-                      color: Theme.of(context).colorScheme.onErrorContainer,
-                    ),
-                  ),
-                  child: JournalCard(
-                    entry: entry,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => DetailPage(
-                          entry: entry,
-                          onChanged: controller.update,
-                        ),
+            ],
+          ),
+        ) ??
+        false;
+    if (accepted) {
+      try {
+        await controller.delete(entry);
+      } catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(s.storageError)));
+        }
+      }
+    }
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) => Scaffold(
+        appBar: AppBar(
+          title: Text(s.appTitle),
+          leading: IconButton(
+            tooltip: s.settings,
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: controller.loading
+                ? null
+                : () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => SettingsPage(
+                        journal: controller,
+                        settings: widget.settings,
                       ),
                     ),
                   ),
+          ),
+          actions: [
+            IconButton(
+              tooltip: s.addEntry,
+              onPressed:
+                  controller.loading || controller.loadFailed || controller.busy
+                  ? null
+                  : addEntry,
+              icon: const Icon(Icons.add),
+            ),
+          ],
+        ),
+        body: SafeArea(
+          child: controller.loading
+              ? const Center(child: CircularProgressIndicator())
+              : controller.loadFailed
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(s.storageError),
+                        TextButton(
+                          onPressed: controller.load,
+                          child: Text(s.retry),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : controller.entries.isEmpty
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.menu_book_outlined, size: 48),
+                        const SizedBox(height: 16),
+                        Text(s.emptyJournal),
+                        const SizedBox(height: 16),
+                        FilledButton.icon(
+                          onPressed: controller.busy ? null : addEntry,
+                          icon: const Icon(Icons.add),
+                          label: Text(s.addEntry),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : ListView(
+                  padding: const EdgeInsets.all(20),
+                  children: [
+                    Text(
+                      s.journal,
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(s.entryCount('${controller.entries.length}')),
+                    const SizedBox(height: 20),
+                    for (final entry in controller.entries)
+                      Dismissible(
+                        key: ObjectKey(entry),
+                        direction: controller.busy
+                            ? DismissDirection.none
+                            : DismissDirection.endToStart,
+                        confirmDismiss: (_) => delete(entry),
+                        background: Container(
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 24),
+                          color: Theme.of(context).colorScheme.errorContainer,
+                          child: Icon(
+                            Icons.delete_outline,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onErrorContainer,
+                          ),
+                        ),
+                        child: JournalCard(
+                          entry: entry,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => DetailPage(
+                                entry: entry,
+                                onSave: (original, updated) => controller
+                                    .saveEntry(updated, original: original),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-            ],
-          );
-        },
+        ),
       ),
-    ),
-  );
+    );
+  }
 }

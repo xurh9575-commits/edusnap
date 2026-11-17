@@ -1,33 +1,151 @@
 import 'package:flutter/material.dart';
 
+import '../../Utils/AppSettings.dart';
+import '../../l10n/app_localizations.dart';
+import '../HomePage/HomePageController.dart';
 import 'SettingsPageController.dart';
 
-class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key});
+class SettingsPage extends StatefulWidget {
+  final HomePageController journal;
+  final AppSettings settings;
+  const SettingsPage({
+    super.key,
+    required this.journal,
+    required this.settings,
+  });
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  late final SettingsPageController controller;
+  String? used;
+  bool busy = false;
+  bool failed = false;
+  @override
+  void initState() {
+    super.initState();
+    controller = SettingsPageController(widget.journal, widget.settings);
+    refresh();
+  }
+
+  Future<void> refresh() async {
+    try {
+      final size = await controller.usedKB();
+      if (mounted) {
+        setState(() {
+          used = size;
+          failed = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => failed = true);
+    }
+  }
+
+  Future<bool> confirm({required bool finalStep}) async {
+    final s = AppLocalizations.of(context)!;
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(finalStep ? s.clearFinalTitle : s.clearTitle),
+            content: Text(finalStep ? s.clearFinalBody : s.clearBody),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(s.cancel),
+              ),
+              FilledButton(
+                key: Key(
+                  finalStep ? 'confirm-clear-final' : 'confirm-clear-first',
+                ),
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(s.clear),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
+  Future<void> clear() async {
+    if (!await confirm(finalStep: false) || !mounted) return;
+    if (!await confirm(finalStep: true) || !mounted) return;
+    await action(() async {
+      await controller.clear();
+      await refresh();
+    });
+  }
+
+  Future<void> action(Future<void> Function() operation) async {
+    setState(() => busy = true);
+    try {
+      await operation();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.storageError)),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final controller = SettingsPageController();
-    return Scaffold(
-      appBar: AppBar(title: Text(controller.title)),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(24),
-          children: [
-            const Icon(Icons.menu_book_outlined, size: 48),
-            const SizedBox(height: 16),
-            Text(
-              'EduSnap',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 32),
-            Text(
-              'About your entries',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 12),
-            Text(controller.storageMessage),
-          ],
+    final s = AppLocalizations.of(context)!;
+    return PopScope(
+      canPop: !busy,
+      child: Scaffold(
+        appBar: AppBar(title: Text(s.settings)),
+        body: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.all(24),
+            children: [
+              Text(s.language, style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                key: ValueKey(widget.settings.locale.languageCode),
+                initialValue: widget.settings.locale.languageCode,
+                decoration: InputDecoration(labelText: s.language),
+                items: [
+                  DropdownMenuItem(value: 'en', child: Text(s.english)),
+                  DropdownMenuItem(value: 'zh', child: Text(s.chinese)),
+                ],
+                onChanged: busy
+                    ? null
+                    : (value) {
+                        if (value != null) {
+                          action(() => controller.setLanguage(value));
+                        }
+                      },
+              ),
+              const SizedBox(height: 32),
+              Text(s.storage, style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 16),
+              if (failed)
+                TextButton(onPressed: refresh, child: Text(s.retry))
+              else if (used == null)
+                const Center(child: CircularProgressIndicator())
+              else
+                Text(
+                  s.storageUsed(used!),
+                  key: const Key('storage-used'),
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+              const SizedBox(height: 12),
+              Text(s.storageDescription),
+              const SizedBox(height: 24),
+              FilledButton.tonalIcon(
+                key: const Key('clear-journals'),
+                onPressed: busy || widget.journal.busy ? null : clear,
+                icon: const Icon(Icons.delete_forever_outlined),
+                label: Text(s.clear),
+              ),
+              if (busy) const Center(child: CircularProgressIndicator()),
+            ],
+          ),
         ),
       ),
     );
