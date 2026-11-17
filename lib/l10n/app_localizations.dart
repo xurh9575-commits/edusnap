@@ -386,6 +386,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete “{title}”?'**
   String deleteBody(String title);
+
+  /// No description provided for @versionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Version (build)'**
+  String get versionLabel;
+
+  /// No description provided for @versionUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Version unavailable'**
+  String get versionUnavailable;
 }
 
 class _AppLocalizationsDelegate

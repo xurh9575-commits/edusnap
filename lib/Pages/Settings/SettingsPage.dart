@@ -1,3 +1,5 @@
+import '../../Component/DuoHost/DuoHost.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../Utils/AppSettings.dart';
@@ -22,11 +24,28 @@ class _SettingsPageState extends State<SettingsPage> {
   String? used;
   bool busy = false;
   bool failed = false;
+  String? version;
+  bool versionFailed = false;
   @override
   void initState() {
     super.initState();
     controller = SettingsPageController(widget.journal, widget.settings);
     refresh();
+    loadVersion();
+  }
+
+  Future<void> loadVersion() async {
+    try {
+      final info = await controller.appInfo();
+      if (mounted) {
+        setState(() {
+          version = '${info.version} (${info.buildNumber})';
+          versionFailed = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => versionFailed = true);
+    }
   }
 
   Future<void> refresh() async {
@@ -98,7 +117,11 @@ class _SettingsPageState extends State<SettingsPage> {
     return PopScope(
       canPop: !busy,
       child: Scaffold(
-        appBar: AppBar(title: Text(s.settings)),
+        appBar: AppBar(
+          automaticallyImplyLeading:
+              !(DuoHost.of(context)?.railActive ?? false),
+          title: Text(s.settings),
+        ),
         body: SafeArea(
           child: ListView(
             padding: const EdgeInsets.all(24),
@@ -144,6 +167,33 @@ class _SettingsPageState extends State<SettingsPage> {
                 label: Text(s.clear),
               ),
               if (busy) const Center(child: CircularProgressIndicator()),
+              const SizedBox(height: 32),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset(
+                    'assets/icon.png',
+                    width: 56,
+                    height: 56,
+                    semanticLabel: 'EduSnap',
+                  ),
+                ),
+                title: Text(s.appTitle),
+                subtitle: Text(
+                  version == null
+                      ? s.versionUnavailable
+                      : '${s.versionLabel}: $version',
+                  key: const Key('app-version'),
+                ),
+                trailing: versionFailed
+                    ? IconButton(
+                        tooltip: s.retry,
+                        onPressed: loadVersion,
+                        icon: const Icon(Icons.refresh),
+                      )
+                    : null,
+              ),
             ],
           ),
         ),

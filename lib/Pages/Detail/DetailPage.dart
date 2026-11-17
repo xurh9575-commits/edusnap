@@ -1,3 +1,5 @@
+import '../../Component/DuoHost/DuoHost.dart';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -53,6 +55,7 @@ class _DetailPageState extends State<DetailPage> {
     final s = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: !(DuoHost.of(context)?.railActive ?? false),
         title: Text(s.entry),
         actions: [
           TextButton.icon(

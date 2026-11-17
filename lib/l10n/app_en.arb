@@ -75,5 +75,7 @@
         "type": "String"
       }
     }
-  }
+  },
+  "versionLabel": "Version (build)",
+  "versionUnavailable": "Version unavailable"
 }

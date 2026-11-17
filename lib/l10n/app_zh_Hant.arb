@@ -75,5 +75,7 @@
         "type": "String"
       }
     }
-  }
+  },
+  "versionLabel": "版本（建置編號）",
+  "versionUnavailable": "暫時無法讀取版本"
 }

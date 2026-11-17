@@ -1,3 +1,5 @@
+import '../../Component/DuoHost/DuoHost.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../Component/JournalCard/JournalCard.dart';
@@ -138,49 +140,69 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 )
-              : ListView(
-                  padding: const EdgeInsets.all(20),
-                  children: [
-                    Text(
-                      s.journal,
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(s.entryCount('${controller.entries.length}')),
-                    const SizedBox(height: 20),
-                    for (final entry in controller.entries)
-                      Dismissible(
-                        key: ObjectKey(entry),
-                        direction: controller.busy
-                            ? DismissDirection.none
-                            : DismissDirection.endToStart,
-                        confirmDismiss: (_) => delete(entry),
-                        background: Container(
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.only(right: 24),
-                          color: Theme.of(context).colorScheme.errorContainer,
-                          child: Icon(
-                            Icons.delete_outline,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onErrorContainer,
-                          ),
-                        ),
-                        child: JournalCard(
-                          entry: entry,
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => DetailPage(
-                                entry: entry,
-                                onSave: (original, updated) => controller
-                                    .saveEntry(updated, original: original),
+              : LayoutBuilder(
+                  builder: (context, constraints) => ListView(
+                    padding: const EdgeInsets.all(20),
+                    children: [
+                      Text(
+                        s.journal,
+                        style: Theme.of(context).textTheme.headlineMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(s.entryCount('${controller.entries.length}')),
+                      const SizedBox(height: 20),
+                      Wrap(
+                        spacing: 16,
+                        runSpacing: 16,
+                        children: [
+                          for (final entry in controller.entries)
+                            SizedBox(
+                              width:
+                                  (DuoHost.of(context)?.fullyOpen ?? false) &&
+                                      constraints.maxWidth >= 720
+                                  ? (constraints.maxWidth - 56) / 2
+                                  : constraints.maxWidth - 40,
+                              child: Dismissible(
+                                key: ObjectKey(entry),
+                                direction: controller.busy
+                                    ? DismissDirection.none
+                                    : DismissDirection.endToStart,
+                                confirmDismiss: (_) => delete(entry),
+                                background: Container(
+                                  alignment: Alignment.centerRight,
+                                  padding: const EdgeInsets.only(right: 24),
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .errorContainer,
+                                  child: Icon(
+                                    Icons.delete_outline,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onErrorContainer,
+                                  ),
+                                ),
+                                child: JournalCard(
+                                  entry: entry,
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => DetailPage(
+                                        entry: entry,
+                                        onSave: (original, updated) =>
+                                            controller.saveEntry(
+                                              updated,
+                                              original: original,
+                                            ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
+                        ],
                       ),
-                  ],
+                    ],
+                  ),
                 ),
         ),
       ),

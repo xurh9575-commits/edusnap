@@ -160,6 +160,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String deleteBody(String title) {
     return '確定刪除「$title」？';
   }
+
+  @override
+  String get versionLabel => '版本（建置編號）';
+
+  @override
+  String get versionUnavailable => '暫時無法讀取版本';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -317,4 +323,10 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String deleteBody(String title) {
     return '確定刪除「$title」？';
   }
+
+  @override
+  String get versionLabel => '版本（建置編號）';
+
+  @override
+  String get versionUnavailable => '暫時無法讀取版本';
 }

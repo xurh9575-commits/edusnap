@@ -66,3 +66,28 @@ permission_handler 使用 12.x，以配合目前 Android 編譯 SDK；13.x 的 A
 GitHub：https://github.com/xurh9575-commits/edusnap
 開發分支：dev/karon。
 出處：本專案 Git 遠端設定。
+
+## Session 4：圖示、主題、版本與 Duo
+
+- 原創書本＋相機 logo，代表學習與照片日記。依使用者要求採淺藍白配色：背景 #BFE4FA、白色 #FFFFFF、可讀深藍 #26628C。SVG 原稿在 assets/icon.svg，assets/icon.png 為不透明 RGB 1024×1024 PNG。
+- flutter_launcher_icons 已產生 Android 一般／自適應圖示及 iOS AppIcon。修改原稿後須重新輸出 1024 PNG，再執行 dart run flutter_launcher_icons。
+- Utils/AppTheme.dart 集中設定 Material 3 配色、AppBar、卡片及輸入框，按鈕沿用 ColorScheme。課件第 13 頁示範色盤已由 Challenge 自訂淺藍白色盤取代。
+- pubspec.yaml 版本更新至 1.1.0+4；Settings 透過 package_info_plus 讀取安裝套件實際版本／build，英文／繁中均有標籤。讀取失敗提供重試。1.1.0 是 minor 功能版本，4 是建置編號；可修改 pubspec、重新編譯安裝後對照顯示。
+- 課件指定的 Git Duo 插件固定至 821121bfc3ebe540f344880904cf41ef355b5e66。Component/DuoHost 負責共用 View／Controller。iOS 監聽原生 fold stream、原生 rail 按鍵，使用 Navigator.maybePop 保留儲存中的 PopScope 防護；只有原生回報 available 時隱藏 Flutter 返回鍵。自訂按鍵 id 避免插件同時回傳 onItemTap 和 legacy onBack 導致重複返回。離開時取消訂閱並清空 rail。
+- fullyOpen 且可用寬度至少 720 時，首頁日記以兩欄使用展開畫面；半開或較窄畫面回復單欄。不支援平台保留普通 Flutter 返回及單欄。
+
+出處：Session 4 第 6–9、13、16–20、25–28、31 頁；使用者配色要求；本專案 assets、AppTheme、Settings、DuoHost。
+
+### 驗證與限制
+
+- flutter analyze：No issues found；flutter test：8 個測試通過。新增 mocked channel 測試涵蓋 fullyOpen／halfOpen 欄寬切換、原生返回、unsupported fallback，以及從套件 metadata 讀到不同於 pubspec 的 2.3.4 (99)，證明 UI 沒有硬編碼版本。
+- flutter test integration_test/session3_test.dart -d emulator-5554：1 個 Android 整合測試通過，實際讀到 Version (build): 1.1.0 (4)，並驗證照片、編輯、重開、語言及雙重確認清除。測試使用獨立暫存目錄。
+- flutter build apk --debug --target-platform android-x64：成功。圖示來源已檢查為 1024×1024 RGB。
+- Windows 無法執行 pod install、Xcode 編譯或 iPhone Duo 模擬器；iOS／Duo 原生驗收尚未完成。插件 README 聲稱需要 Xcode／iOS 27.1+；此為上游要求，未在本機驗證 SDK 或裝置可用性。上游 Swift 實際含 UINavigationController 包裝，與 README 的不包裝描述不同，因此不能僅依文件保證 Metal 顯示正常。請在有相容 SDK 的 Mac 執行 flutter pub get、cd ios、pod install，再於 Duo 目標檢查側欄、單次返回、展開／收合及照片顯示。
+- package_info_plus 9.x 建置有未來 Flutter KGP 相容性提示，目前建置成功。
+- 課件第 33 頁最終提交表單：https://forms.gle/B33SMbt1SdqNH45eA 。未代填或提交。
+
+出處：本次 Flutter／Android 測試與建置輸出；插件固定版本 README、Dart 及 Swift 原始碼；Session 4 第 33 頁。
+
+Android 一般 App 已重新安裝並啟動；ADB 顯示 versionName=1.1.0、versionCode=4。已目視檢查桌面圓形啟動圖示及 App 淺藍白首頁，截圖位於工作資料夾 edusnap-session4.png、edusnap-session4-icon-check.png。模擬器整合測試的 Flutter 安裝流程會重建測試 App，現時一般 App 從空白日記開始；先前測試示範資料不屬於提交內容。
+出處：本次 ADB 套件資訊及實際截圖。

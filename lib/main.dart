@@ -1,5 +1,9 @@
 import 'dart:io';
 
+import 'Component/DuoHost/DuoHost.dart';
+import 'Component/DuoHost/DuoHostController.dart';
+import 'Utils/AppTheme.dart';
+
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -32,14 +36,17 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late final HomePageController journal;
+  final duo = DuoHostController();
   @override
   void initState() {
     super.initState();
     journal = HomePageController(widget.storage);
+    duo.start();
   }
 
   @override
   void dispose() {
+    duo.dispose();
     journal.dispose();
     super.dispose();
   }
@@ -56,13 +63,10 @@ class _MyAppState extends State<MyApp> {
         Locale('en'),
         Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'),
       ],
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF246B61)),
-        useMaterial3: true,
-        inputDecorationTheme: const InputDecorationTheme(
-          border: OutlineInputBorder(),
-        ),
-      ),
+      theme: appTheme(),
+      navigatorKey: duo.key,
+      navigatorObservers: [duo],
+      builder: (context, child) => DuoHost.builder(duo, child!),
       home: HomePage(controller: journal, settings: widget.settings),
     ),
   );

@@ -166,4 +166,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String deleteBody(String title) {
     return 'Delete “$title”?';
   }
+
+  @override
+  String get versionLabel => 'Version (build)';
+
+  @override
+  String get versionUnavailable => 'Version unavailable';
 }

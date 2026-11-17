@@ -1,3 +1,5 @@
+import '../../Component/DuoHost/DuoHost.dart';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -127,6 +129,8 @@ class _AddPageState extends State<AddPage> {
       canPop: !controller.busy,
       child: Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading:
+              !(DuoHost.of(context)?.railActive ?? false),
           title: Text(controller.isEditing ? s.editEntry : s.addEntry),
         ),
         body: SafeArea(
